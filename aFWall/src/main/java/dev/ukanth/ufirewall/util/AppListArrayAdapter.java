@@ -67,6 +67,9 @@ public class AppListArrayAdapter extends ArrayAdapter<PackageInfoData> {
             if (G.enableVPN()) {
                 holder.box_vpn = addSupport(convertView, true, R.id.itemcheck_vpn);
             }
+            if (G.enableUSB()) {
+                holder.box_usb = addSupport(convertView, true, R.id.itemcheck_usb);
+            }
             if (G.enableLAN()) {
                 holder.box_lan = addSupport(convertView, true, R.id.itemcheck_lan);
             }
@@ -96,6 +99,9 @@ public class AppListArrayAdapter extends ArrayAdapter<PackageInfoData> {
             }
             if (G.enableVPN()) {
                 addSupport(convertView, false, R.id.itemcheck_vpn);
+            }
+            if (G.enableUSB()) {
+                addSupport(convertView, false, R.id.itemcheck_usb);
             }
             if (G.enableLAN()) {
                 addSupport(convertView, false, R.id.itemcheck_lan);
@@ -174,6 +180,9 @@ public class AppListArrayAdapter extends ArrayAdapter<PackageInfoData> {
         }
         if (G.enableVPN()) {
             holder.box_vpn = addSupport(holder.box_vpn, holder.app, 1);
+        }
+        if (G.enableUSB()) {
+            holder.box_usb = addSupport(holder.box_usb, holder.app, 6);
         }
         if (G.enableLAN()) {
             holder.box_lan = addSupport(holder.box_lan, holder.app, 2);
@@ -274,6 +283,23 @@ public class AppListArrayAdapter extends ArrayAdapter<PackageInfoData> {
             });
         }
 
+        if (holder.box_usb != null) {
+            holder.box_usb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                    if(compoundButton.isPressed()) {
+                        if (holder.app.selected_usb != isChecked) {
+                            holder.app.selected_usb = isChecked;
+                            MainActivity.dirty = true;
+                            notifyDataSetChanged();
+                            //Log.i(TAG, "Application state changed: " + holder.app.pkgName);
+                            //MainActivity.addToQueue(holder.app);
+                        }
+                    }
+                }
+            });
+        }
+
         if (holder.box_tor != null) {
             holder.box_tor.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -301,6 +327,9 @@ public class AppListArrayAdapter extends ArrayAdapter<PackageInfoData> {
                     break;
                 case 1:
                     check.setChecked(app.selected_vpn);
+                    break;
+                case 6:
+                    check.setChecked(app.selected_usb);
                     break;
                 case 2:
                     check.setChecked(app.selected_lan);
@@ -335,6 +364,7 @@ public class AppListArrayAdapter extends ArrayAdapter<PackageInfoData> {
         private CheckBox box_3g;
         private CheckBox box_roam;
         private CheckBox box_vpn;
+        private CheckBox box_usb;
         private CheckBox box_tor;
         private TextView text;
         private ImageView icon;

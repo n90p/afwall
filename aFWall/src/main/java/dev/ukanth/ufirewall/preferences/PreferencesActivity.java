@@ -307,7 +307,7 @@ public class PreferencesActivity extends PreferenceActivity implements SharedPre
         Context ctx = getApplicationContext();
 
 
-        if (key.equals("showUid") || key.equals("disableIcons") || key.equals("enableVPN")
+        if (key.equals("showUid") || key.equals("disableIcons") || key.equals("enableVPN") || key.equals("enableUSB")
                 || key.equals("enableLAN") || key.equals("enableRoam")
                 || key.equals("locale") || key.equals("showFilter")) {
             G.reloadProfile();

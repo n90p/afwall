@@ -32,6 +32,13 @@
         <CheckBoxPreference
             android:defaultValue="false"
             android:dependency="activeRules"
+            android:icon="@drawable/ic_usb"
+            android:key="enableUSB"
+            android:summary="@string/usbSummary"
+            android:title="@string/usb_profile" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="activeRules"
             android:icon="@drawable/ic_tor"
             android:key="enableTor"
             android:summary="@string/torSummary"
