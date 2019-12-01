@@ -803,7 +803,7 @@ public final class Api {
             if (((!whitelist && (any_wifi || any_3g)) ||
                     (ruleDataSet.dataList.indexOf(SPECIAL_UID_TETHER) >= 0) || (ruleDataSet.wifiList.indexOf(SPECIAL_UID_TETHER) >= 0))) {
 
-                String users[] = {"root", "nobody"};
+                String users[] = {"root", "nobody", "dns_tether"};
                 String action = " -j " + (whitelist ? "RETURN" : AFWALL_CHAIN_NAME + "-reject");
 
                 // DHCP replies to client
