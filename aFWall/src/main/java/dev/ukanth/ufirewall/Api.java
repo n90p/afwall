@@ -874,9 +874,25 @@ public final class Api {
                     // export vars for the benefit of custom scripts
                     // "true" is a dummy command which needs to return success
                     firstLit = false;
+                    RuleDataSet ruleDataSet = getDataSet();
+                    String delimeter = " ";
+                    String enabled_wifi = android.text.TextUtils.join(delimeter, ruleDataSet.wifiList);
+                    String enabled_data = android.text.TextUtils.join(delimeter, ruleDataSet.dataList);
+                    String enabled_roam = android.text.TextUtils.join(delimeter, ruleDataSet.roamList);
+                    String enabled_vpn = android.text.TextUtils.join(delimeter, ruleDataSet.vpnList);
+                    String enabled_bluetooth = android.text.TextUtils.join(delimeter, ruleDataSet.bluetoothList);
+                    String enabled_lan = android.text.TextUtils.join(delimeter, ruleDataSet.lanList);
+                    String enabled_tor = android.text.TextUtils.join(delimeter, ruleDataSet.torList);
                     out.add("export IPTABLES=\"" + ipPath + "\"; "
                             + "export BUSYBOX=\"" + bbPath + "\"; "
                             + "export IPV6=" + (ipv6 ? "1" : "0") + "; "
+                            + "export ENABLED_WIFI=\"" + enabled_wifi + "\"; "
+                            + "export ENABLED_DATA=\"" + enabled_data + "\"; "
+                            + "export ENABLED_ROAM=\"" + enabled_roam + "\"; "
+                            + "export ENABLED_VPN=\"" + enabled_vpn + "\"; "
+                            + "export ENABLED_BLUETOOTH=\"" + enabled_bluetooth + "\"; "
+                            + "export ENABLED_LAN=\"" + enabled_lan + "\"; "
+                            + "export ENABLED_TOR=\"" + enabled_tor + "\"; "
                             + "true");
                 }
                 out.add(s.replaceFirst("^#LITERAL# ", ""));
