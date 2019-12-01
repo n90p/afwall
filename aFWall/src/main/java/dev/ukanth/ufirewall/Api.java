@@ -182,6 +182,7 @@ public final class Api {
     public static final String PREF_TOR_PKG_UIDS = "AllowedPKGTOR_UIDS";
     public static final String PREF_CUSTOMSCRIPT = "CustomScript";
     public static final String PREF_CUSTOMSCRIPT2 = "CustomScript2"; // Executed on shutdown
+    public static final String PREF_CUSTOMSCRIPT3 = "CustomScript3"; // Executed on fast apply (e.g when network state changed)
     public static final String PREF_MODE = "BlockMode";
     public static final String PREF_ENABLED = "Enabled";
     // Modes
@@ -194,6 +195,7 @@ public final class Api {
     public static final String STATUS_EXTRA = "dev.ukanth.ufirewall.intent.extra.STATUS";
     public static final String SCRIPT_EXTRA = "dev.ukanth.ufirewall.intent.extra.SCRIPT";
     public static final String SCRIPT2_EXTRA = "dev.ukanth.ufirewall.intent.extra.SCRIPT2";
+    public static final String SCRIPT3_EXTRA = "dev.ukanth.ufirewall.intent.extra.SCRIPT3";
     public static final int ERROR_NOTIFICATION_ID = 9;
     private static final int WIFI_EXPORT = 0;
     private static final int DATA_EXPORT = 1;
@@ -1027,10 +1029,12 @@ public final class Api {
                 List<String> cmds;
                 cmds = new ArrayList<String>();
                 applyShortRules(ctx, cmds, false);
+                addCustomRules(Api.PREF_CUSTOMSCRIPT3, cmds);
                 iptablesCommands(cmds, out, false);
                 if (G.enableIPv6()) {
                     cmds = new ArrayList<String>();
                     applyShortRules(ctx, cmds, true);
+                    addCustomRules(Api.PREF_CUSTOMSCRIPT3, cmds);
                     iptablesCommands(cmds, out, true);
                 }
                 callback.setRetryExitCode(IPTABLES_TRY_AGAIN).run(ctx, out);
