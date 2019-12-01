@@ -170,6 +170,8 @@ public class RulesPreferenceFragment extends PreferenceFragment implements
                 enableVPN.setChecked(false);
                 CheckBoxPreference enableBluetooth = (CheckBoxPreference) findPreference("enableBluetooth");
                 enableBluetooth.setChecked(false);
+                CheckBoxPreference enableUSB = (CheckBoxPreference) findPreference("enableUSB");
+                enableUSB.setChecked(false);
                 CheckBoxPreference enableTor = (CheckBoxPreference) findPreference("enableTor");
                 enableTor.setChecked(false);
 
@@ -177,6 +179,7 @@ public class RulesPreferenceFragment extends PreferenceFragment implements
                 G.enableLAN(false);
                 G.enableVPN(false);
                 G.enableBluetooth(false);
+                G.enableUSB(false);
                 G.enableTor(false);
 
             }

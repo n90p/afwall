@@ -178,10 +178,12 @@ public final class Api {
     public static final String PREF_ROAMING_PKG_UIDS = "AllowedPKGRoaming_UIDS";
     public static final String PREF_VPN_PKG_UIDS = "AllowedPKGVPN_UIDS";
     public static final String PREF_BLUETOOTH_PKG_UIDS = "AllowedPKGBluetooth_UIDS";
+    public static final String PREF_USB_PKG_UIDS = "AllowedPKGUSB_UIDS";
     public static final String PREF_LAN_PKG_UIDS = "AllowedPKGLAN_UIDS";
     public static final String PREF_TOR_PKG_UIDS = "AllowedPKGTOR_UIDS";
     public static final String PREF_CUSTOMSCRIPT = "CustomScript";
     public static final String PREF_CUSTOMSCRIPT2 = "CustomScript2"; // Executed on shutdown
+    public static final String PREF_CUSTOMSCRIPT3 = "CustomScript3"; // Executed on fast apply (e.g when network state changed)
     public static final String PREF_MODE = "BlockMode";
     public static final String PREF_ENABLED = "Enabled";
     // Modes
@@ -194,6 +196,7 @@ public final class Api {
     public static final String STATUS_EXTRA = "dev.ukanth.ufirewall.intent.extra.STATUS";
     public static final String SCRIPT_EXTRA = "dev.ukanth.ufirewall.intent.extra.SCRIPT";
     public static final String SCRIPT2_EXTRA = "dev.ukanth.ufirewall.intent.extra.SCRIPT2";
+    public static final String SCRIPT3_EXTRA = "dev.ukanth.ufirewall.intent.extra.SCRIPT3";
     public static final int ERROR_NOTIFICATION_ID = 9;
     private static final int WIFI_EXPORT = 0;
     private static final int DATA_EXPORT = 1;
@@ -201,17 +204,19 @@ public final class Api {
     // Messages
     private static final int VPN_EXPORT = 3;
     private static final int BLUETOOTH_EXPORT = 6;
+    private static final int USB_EXPORT = 7;
     private static final int LAN_EXPORT = 4;
     private static final int TOR_EXPORT = 5;
     private static final String ITFS_WIFI[] = InterfaceTracker.ITFS_WIFI;
     private static final String ITFS_3G[] = InterfaceTracker.ITFS_3G;
     private static final String ITFS_VPN[] = InterfaceTracker.ITFS_VPN;
     private static final String ITFS_BLUETOOTH[] = InterfaceTracker.ITFS_BLUETOOTH;
+    private static final String ITFS_USB[] = InterfaceTracker.ITFS_USB;
     // iptables can exit with status 4 if two processes tried to update the same table
     private static final int IPTABLES_TRY_AGAIN = 4;
     private static final String dynChains[] = {"-3g-postcustom", "-3g-fork", "-wifi-postcustom", "-wifi-fork"};
     private static final String natChains[] = {"", "-tor-check", "-tor-filter"};
-    private static final String staticChains[] = {"", "-input", "-3g", "-wifi", "-reject", "-vpn", "-3g-tether", "-3g-home", "-3g-roam", "-wifi-tether", "-wifi-wan", "-wifi-lan", "-tor", "-tor-reject", "-bluetooth"};
+    private static final String staticChains[] = {"", "-input", "-3g", "-wifi", "-reject", "-vpn", "-3g-tether", "-3g-home", "-3g-roam", "-wifi-tether", "-wifi-wan", "-wifi-lan", "-tor", "-tor-reject", "-bluetooth", "-usb"};
     /**
      * @brief Special user/group IDs that aren't associated with
      * any particular app.
@@ -787,6 +792,12 @@ public final class Api {
                 }
             }
 
+            if (G.enableUSB()) {
+                // if !enableVPN then we ignore those interfaces (pass all traffic)
+                for (final String itf : ITFS_USB) {
+                    cmds.add("-A " + AFWALL_CHAIN_NAME + " -o " + itf + " -j " + AFWALL_CHAIN_NAME + "-usb");
+                }
+            }
             for (final String itf : ITFS_WIFI) {
                 cmds.add("-A " + AFWALL_CHAIN_NAME + " -o " + itf + " -j " + AFWALL_CHAIN_NAME + "-wifi");
             }
@@ -832,6 +843,7 @@ public final class Api {
             addRulesForUidlist(cmds, ruleDataSet.lanList, AFWALL_CHAIN_NAME + "-wifi-lan", whitelist);
             addRulesForUidlist(cmds, ruleDataSet.vpnList, AFWALL_CHAIN_NAME + "-vpn", whitelist);
             addRulesForUidlist(cmds, ruleDataSet.bluetoothList, AFWALL_CHAIN_NAME + "-bluetooth", whitelist);
+            addRulesForUidlist(cmds, ruleDataSet.usbList, AFWALL_CHAIN_NAME + "-usb", whitelist);
 
 
             if (G.enableTor()) {
@@ -865,9 +877,25 @@ public final class Api {
                     // export vars for the benefit of custom scripts
                     // "true" is a dummy command which needs to return success
                     firstLit = false;
+                    RuleDataSet ruleDataSet = getDataSet();
+                    String delimeter = " ";
+                    String enabled_wifi = android.text.TextUtils.join(delimeter, ruleDataSet.wifiList);
+                    String enabled_data = android.text.TextUtils.join(delimeter, ruleDataSet.dataList);
+                    String enabled_roam = android.text.TextUtils.join(delimeter, ruleDataSet.roamList);
+                    String enabled_vpn = android.text.TextUtils.join(delimeter, ruleDataSet.vpnList);
+                    String enabled_bluetooth = android.text.TextUtils.join(delimeter, ruleDataSet.bluetoothList);
+                    String enabled_lan = android.text.TextUtils.join(delimeter, ruleDataSet.lanList);
+                    String enabled_tor = android.text.TextUtils.join(delimeter, ruleDataSet.torList);
                     out.add("export IPTABLES=\"" + ipPath + "\"; "
                             + "export BUSYBOX=\"" + bbPath + "\"; "
                             + "export IPV6=" + (ipv6 ? "1" : "0") + "; "
+                            + "export ENABLED_WIFI=\"" + enabled_wifi + "\"; "
+                            + "export ENABLED_DATA=\"" + enabled_data + "\"; "
+                            + "export ENABLED_ROAM=\"" + enabled_roam + "\"; "
+                            + "export ENABLED_VPN=\"" + enabled_vpn + "\"; "
+                            + "export ENABLED_BLUETOOTH=\"" + enabled_bluetooth + "\"; "
+                            + "export ENABLED_LAN=\"" + enabled_lan + "\"; "
+                            + "export ENABLED_TOR=\"" + enabled_tor + "\"; "
                             + "true");
                 }
                 out.add(s.replaceFirst("^#LITERAL# ", ""));
@@ -937,6 +965,7 @@ public final class Api {
         final String savedPkg_roam_uid = G.pPrefs.getString(PREF_ROAMING_PKG_UIDS, "");
         final String savedPkg_vpn_uid = G.pPrefs.getString(PREF_VPN_PKG_UIDS, "");
         final String savedPkg_bluetooth_uid = G.pPrefs.getString(PREF_BLUETOOTH_PKG_UIDS, "");
+        final String savedPkg_usb_uid = G.pPrefs.getString(PREF_USB_PKG_UIDS, "");
         final String savedPkg_lan_uid = G.pPrefs.getString(PREF_LAN_PKG_UIDS, "");
         final String savedPkg_tor_uid = G.pPrefs.getString(PREF_TOR_PKG_UIDS, "");
 
@@ -945,6 +974,7 @@ public final class Api {
                 getListFromPref(savedPkg_roam_uid),
                 getListFromPref(savedPkg_vpn_uid),
                 getListFromPref(savedPkg_bluetooth_uid),
+                getListFromPref(savedPkg_usb_uid),
                 getListFromPref(savedPkg_lan_uid),
                 getListFromPref(savedPkg_tor_uid));
 
@@ -1002,10 +1032,12 @@ public final class Api {
                 List<String> cmds;
                 cmds = new ArrayList<String>();
                 applyShortRules(ctx, cmds, false);
+                addCustomRules(Api.PREF_CUSTOMSCRIPT3, cmds);
                 iptablesCommands(cmds, out, false);
                 if (G.enableIPv6()) {
                     cmds = new ArrayList<String>();
                     applyShortRules(ctx, cmds, true);
+                    addCustomRules(Api.PREF_CUSTOMSCRIPT3, cmds);
                     iptablesCommands(cmds, out, true);
                 }
                 callback.setRetryExitCode(IPTABLES_TRY_AGAIN).run(ctx, out);
@@ -1036,6 +1068,7 @@ public final class Api {
             HashSet newpkg_roam = new HashSet();
             HashSet newpkg_vpn = new HashSet();
             HashSet newpkg_bluetooth = new HashSet();
+            HashSet newpkg_usb = new HashSet();
             HashSet newpkg_lan = new HashSet();
             HashSet newpkg_tor = new HashSet();
 
@@ -1072,6 +1105,13 @@ public final class Api {
                             if (!store) newpkg_bluetooth.add(-apps.get(i).uid);
                         }
                     }
+                    if (G.enableUSB()) {
+                        if (apps.get(i).selected_usb) {
+                            newpkg_usb.add(apps.get(i).uid);
+                        } else {
+                            if (!store) newpkg_usb.add(-apps.get(i).uid);
+                        }
+                    }
                     if (G.enableLAN()) {
                         if (apps.get(i).selected_lan) {
                             newpkg_lan.add(apps.get(i).uid);
@@ -1094,6 +1134,7 @@ public final class Api {
             String roam = android.text.TextUtils.join("|", newpkg_roam);
             String vpn = android.text.TextUtils.join("|", newpkg_vpn);
             String bluetooth = android.text.TextUtils.join("|", newpkg_bluetooth);
+            String usb = android.text.TextUtils.join("|", newpkg_usb);
             String lan = android.text.TextUtils.join("|", newpkg_lan);
             String tor = android.text.TextUtils.join("|", newpkg_tor);
             // save the new list of UIDs
@@ -1105,6 +1146,7 @@ public final class Api {
                 edit.putString(PREF_ROAMING_PKG_UIDS, roam);
                 edit.putString(PREF_VPN_PKG_UIDS, vpn);
                 edit.putString(PREF_BLUETOOTH_PKG_UIDS, bluetooth);
+                edit.putString(PREF_USB_PKG_UIDS, usb);
                 edit.putString(PREF_LAN_PKG_UIDS, lan);
                 edit.putString(PREF_TOR_PKG_UIDS, tor);
                 edit.commit();
@@ -1114,6 +1156,7 @@ public final class Api {
                         new ArrayList<>(newpkg_roam),
                         new ArrayList<>(newpkg_vpn),
                         new ArrayList<>(newpkg_bluetooth),
+                        new ArrayList<>(newpkg_usb),
                         new ArrayList<>(newpkg_lan),
                         new ArrayList<>(newpkg_tor));
             }
@@ -1424,6 +1467,7 @@ public final class Api {
         String savedPkg_roam_uid = prefs.getString(PREF_ROAMING_PKG_UIDS, "");
         String savedPkg_vpn_uid = prefs.getString(PREF_VPN_PKG_UIDS, "");
         String savedPkg_bluetooth_uid = prefs.getString(PREF_BLUETOOTH_PKG_UIDS, "");
+        String savedPkg_usb_uid = prefs.getString(PREF_USB_PKG_UIDS, "");
         String savedPkg_lan_uid = prefs.getString(PREF_LAN_PKG_UIDS, "");
         String savedPkg_tor_uid = prefs.getString(PREF_TOR_PKG_UIDS, "");
 
@@ -1432,6 +1476,7 @@ public final class Api {
         List<Integer> selected_roam = new ArrayList<>();
         List<Integer> selected_vpn = new ArrayList<>();
         List<Integer> selected_bluetooth = new ArrayList<>();
+        List<Integer> selected_usb = new ArrayList<>();
         List<Integer> selected_lan = new ArrayList<>();
         List<Integer> selected_tor = new ArrayList<>();
 
@@ -1447,6 +1492,9 @@ public final class Api {
         }
         if (G.enableBluetooth()) {
             selected_bluetooth = getListFromPref(savedPkg_bluetooth_uid);
+        }
+        if (G.enableUSB()) {
+            selected_usb = getListFromPref(savedPkg_usb_uid);
         }
         if (G.enableLAN()) {
             selected_lan = getListFromPref(savedPkg_lan_uid);
@@ -1557,6 +1605,9 @@ public final class Api {
                 if (G.enableBluetooth() && !app.selected_bluetooth && Collections.binarySearch(selected_bluetooth, app.uid) >= 0) {
                     app.selected_bluetooth = true;
                 }
+                if (G.enableUSB() && !app.selected_usb && Collections.binarySearch(selected_usb, app.uid) >= 0) {
+                    app.selected_usb = true;
+                }
                 if (G.enableLAN() && !app.selected_lan && Collections.binarySearch(selected_lan, app.uid) >= 0) {
                     app.selected_lan = true;
                 }
@@ -1586,6 +1637,9 @@ public final class Api {
                     }
                     if (G.enableBluetooth() && !app.selected_bluetooth && Collections.binarySearch(selected_bluetooth, app.uid) >= 0) {
                         app.selected_bluetooth = true;
+                    }
+                    if (G.enableUSB() && !app.selected_usb && Collections.binarySearch(selected_usb, app.uid) >= 0) {
+                        app.selected_usb = true;
                     }
                     if (G.enableLAN() && !app.selected_lan && Collections.binarySearch(selected_lan, app.uid) >= 0) {
                         app.selected_lan = true;
@@ -1624,6 +1678,9 @@ public final class Api {
                     }
                     if (G.enableBluetooth() && !app.selected_bluetooth && Collections.binarySearch(selected_bluetooth, app.uid) >= 0) {
                         app.selected_bluetooth = true;
+                    }
+                    if (G.enableUSB() && !app.selected_usb && Collections.binarySearch(selected_usb, app.uid) >= 0) {
+                        app.selected_usb = true;
                     }
                     if (G.enableLAN() && !app.selected_lan && Collections.binarySearch(selected_lan, app.uid) >= 0) {
                         app.selected_lan = true;
@@ -3122,6 +3179,7 @@ public final class Api {
         final String savedPkg_roam_uid = G.pPrefs.getString(PREF_ROAMING_PKG_UIDS, "");
         final String savedPkg_vpn_uid = G.pPrefs.getString(PREF_VPN_PKG_UIDS, "");
         final String savedPkg_bluetooth_uid = G.pPrefs.getString(PREF_BLUETOOTH_PKG_UIDS, "");
+        final String savedPkg_usb_uid = G.pPrefs.getString(PREF_USB_PKG_UIDS, "");
         final String savedPkg_lan_uid = G.pPrefs.getString(PREF_LAN_PKG_UIDS, "");
         final String savedPkg_tor_uid = G.pPrefs.getString(PREF_TOR_PKG_UIDS, "");
 
@@ -3130,6 +3188,7 @@ public final class Api {
                 getListFromPref(savedPkg_roam_uid),
                 getListFromPref(savedPkg_vpn_uid),
                 getListFromPref(savedPkg_bluetooth_uid),
+                getListFromPref(savedPkg_usb_uid),
                 getListFromPref(savedPkg_lan_uid),
                 getListFromPref(savedPkg_tor_uid));
         return dataSet;
@@ -3574,16 +3633,18 @@ public final class Api {
         List<Integer> roamList;
         List<Integer> vpnList;
         List<Integer> bluetoothList;
+        List<Integer> usbList;
         List<Integer> torList;
 
         RuleDataSet(List<Integer> uidsWifi, List<Integer> uids3g,
-                    List<Integer> uidsRoam, List<Integer> uidsVPN, List<Integer> uidsBluetooth,
-                    List<Integer> uidsLAN, List<Integer> uidsTor) {
+                    List<Integer> uidsRoam, List<Integer> uidsVPN, List<Integer> uidsBluetooth, List<Integer> uidsUSB, List<Integer> uidsLAN,
+                    List<Integer> uidsTor) {
             this.wifiList = uidsWifi;
             this.dataList = uids3g;
             this.roamList = uidsRoam;
             this.vpnList = uidsVPN;
             this.bluetoothList = uidsBluetooth;
+            this.usbList = uidsUSB;
             this.lanList = uidsLAN;
             this.torList = uidsTor;
         }
@@ -3595,6 +3656,7 @@ public final class Api {
             builder.append(dataList != null ? android.text.TextUtils.join(",", dataList) : "");
             builder.append(lanList != null ? android.text.TextUtils.join(",", lanList) : "");
             builder.append(roamList != null ? android.text.TextUtils.join(",", roamList) : "");
+            builder.append(usbList != null ? android.text.TextUtils.join(",", usbList) : "");
             builder.append(vpnList != null ? android.text.TextUtils.join(",", vpnList) : "");
             builder.append(bluetoothList != null ? android.text.TextUtils.join(",", bluetoothList) : "");
             builder.append(torList != null ? android.text.TextUtils.join(",", torList) : "");
@@ -3690,6 +3752,10 @@ public final class Api {
          * indicates if this application is selected for lan
          */
         public boolean selected_lan;
+        /**
+         * indicates if this application is selected for usb
+         */
+        public boolean selected_usb;
         /**
          * indicates if this application is selected for tor mode
          */

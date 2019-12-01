@@ -575,6 +575,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             hideColumns(R.id.img_bluetooth);
         }
 
+        if (G.enableUSB()) {
+            addColumns(R.id.img_usb);
+        } else {
+            hideColumns(R.id.img_usb);
+        }
+
         if (!Api.isMobileNetworkSupported(getApplicationContext())) {
             ImageView view = (ImageView) this.findViewById(R.id.img_3g);
             view.setVisibility(View.GONE);
@@ -1447,7 +1453,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 && data != null && Api.CUSTOM_SCRIPT_MSG.equals(data.getAction())) {
             final String script = data.getStringExtra(Api.SCRIPT_EXTRA);
             final String script2 = data.getStringExtra(Api.SCRIPT2_EXTRA);
-            setCustomScript(script, script2);
+            final String script3 = data.getStringExtra(Api.SCRIPT3_EXTRA);
+            setCustomScript(script, script2, script3);
         }
     }
 
@@ -1456,17 +1463,20 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
      *
      * @param script  new script (empty to remove)
      * @param script2 new "shutdown" script (empty to remove)
+     * @param script3 new "fastapply" script (empty to remove)
      */
-    private void setCustomScript(String script, String script2) {
+    private void setCustomScript(String script, String script2, String script3) {
         final Editor editor = getSharedPreferences(Api.PREFS_NAME, 0).edit();
         // Remove unnecessary white-spaces, also replace '\r\n' if necessary
         script = script.trim().replace("\r\n", "\n");
         script2 = script2.trim().replace("\r\n", "\n");
+        script3 = script3.trim().replace("\r\n", "\n");
         editor.putString(Api.PREF_CUSTOMSCRIPT, script);
         editor.putString(Api.PREF_CUSTOMSCRIPT2, script2);
+        editor.putString(Api.PREF_CUSTOMSCRIPT3, script3);
         int msgid;
         if (editor.commit()) {
-            if (script.length() > 0 || script2.length() > 0) {
+            if (script.length() > 0 || script2.length() > 0 || script3.length() > 0) {
                 msgid = R.string.custom_script_defined;
             } else {
                 msgid = R.string.custom_script_removed;
@@ -1551,6 +1561,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 selectActionConfirmation(v.getId());
                 break;
             case R.id.img_bluetooth:
+                selectActionConfirmation(v.getId());
+                break;
+            case R.id.img_usb:
                 selectActionConfirmation(v.getId());
                 break;
             case R.id.img_lan:
@@ -1659,6 +1672,24 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             ((BaseAdapter) adapter).notifyDataSetChanged();
         }
     }
+    private void selectAllUSB(boolean flag) {
+        if (this.listview == null) {
+            this.listview = (ListView) this.findViewById(R.id.listview);
+        }
+        ListAdapter adapter = listview.getAdapter();
+        if (adapter != null) {
+            int count = adapter.getCount(), item;
+            for (item = 0; item < count; item++) {
+                PackageInfoData data = (PackageInfoData) adapter.getItem(item);
+                if (data.uid != Api.SPECIAL_UID_ANY) {
+                    data.selected_usb = flag;
+                    //addToQueue(data);
+                }
+                setDirty(true);
+            }
+            ((BaseAdapter) adapter).notifyDataSetChanged();
+        }
+    }
 
     private void selectRevert(int flag) {
         if (this.listview == null) {
@@ -1685,6 +1716,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                             break;
                         case R.id.img_bluetooth:
                             data.selected_bluetooth = !data.selected_bluetooth;
+                            break;
+                        case R.id.img_usb:
+                            data.selected_usb = !data.selected_usb;
                             break;
                         case R.id.img_lan:
                             data.selected_lan = !data.selected_lan;
@@ -1716,6 +1750,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     data.selected_roam = !data.selected_roam;
                     data.selected_vpn = !data.selected_vpn;
                     data.selected_bluetooth = !data.selected_bluetooth;
+                    data.selected_usb = !data.selected_usb;
                     data.selected_lan = !data.selected_lan;
                     data.selected_tor = !data.selected_tor;
                     //addToQueue(data);
@@ -1759,6 +1794,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 data.selected_roam = false;
                 data.selected_vpn = false;
                 data.selected_bluetooth = false;
+                data.selected_usb = false;
                 data.selected_lan = false;
                 data.selected_tor = false;
                 //addToQueue(data);
@@ -1924,6 +1960,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                         dialog.setTitle(text + getString(R.string.bluetooth));
                                         selectAllBluetooth(true);
                                         break;
+                                    case R.id.img_usb:
+                                        dialog.setTitle(text + getString(R.string.usb));
+                                        selectAllUSB(true);
+                                        break;
                                     case R.id.img_lan:
                                         dialog.setTitle(text + getString(R.string.lan));
                                         selectAllLAN(true);
@@ -1950,6 +1990,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                         break;
                                     case R.id.img_bluetooth:
                                         dialog.setTitle(text + getString(R.string.bluetooth));
+                                        break;
+                                    case R.id.img_usb:
+                                        dialog.setTitle(text + getString(R.string.usb));
                                         break;
                                     case R.id.img_lan:
                                         dialog.setTitle(text + getString(R.string.lan));
@@ -1982,6 +2025,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                     case R.id.img_bluetooth:
                                         dialog.setTitle(text + getString(R.string.bluetooth));
                                         selectAllBluetooth(false);
+                                    case R.id.img_usb:
+                                        dialog.setTitle(text + getString(R.string.usb));
+                                        selectAllUSB(false);
                                         break;
                                     case R.id.img_lan:
                                         dialog.setTitle(text + getString(R.string.lan));

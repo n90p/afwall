@@ -81,6 +81,7 @@ public class G extends Application implements Application.ActivityLifecycleCallb
     private static final String ENABLE_ROAM = "enableRoam";
     private static final String ENABLE_VPN = "enableVPN";
     private static final String ENABLE_BLUETOOTH = "enableBluetooth";
+    private static final String ENABLE_USB = "enableUSB";
     private static final String ENABLE_LAN = "enableLAN";
     private static final String ENABLE_TOR = "enableTor";
     private static final String ENABLE_IPV6 = "enableIPv6";
@@ -694,6 +695,15 @@ public class G extends Application implements Application.ActivityLifecycleCallb
         return val;
     }
 
+    public static boolean enableUSB() {
+        return gPrefs.getBoolean(ENABLE_USB, false);
+    }
+
+    public static boolean enableUSB(boolean val) {
+        gPrefs.edit().putBoolean(ENABLE_USB, val).commit();
+        return val;
+    }
+
     public static boolean enableLAN() {
         return gPrefs.getBoolean(ENABLE_LAN, true);
     }
@@ -714,7 +724,7 @@ public class G extends Application implements Application.ActivityLifecycleCallb
 
 
     public static boolean isDonate() {
-        return BuildConfig.APPLICATION_ID.equals("dev.ukanth.ufirewall.donate");
+        return true;
     }
 
     public static boolean isDoKey(Context ctx) {

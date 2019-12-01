@@ -73,6 +73,34 @@
 
     <LinearLayout
         android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom"
+        android:layout_weight=".1" >
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:text="@string/custom_script3_info" />
+
+            <EditText
+                android:id="@+id/customscript3"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="top"
+                android:inputType="textMultiLine|textNoSuggestions"
+                android:scrollbars="horizontal|vertical"></EditText>
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal">
 

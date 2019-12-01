@@ -59,6 +59,8 @@ public final class InterfaceTracker {
 
     public static final String ITFS_BLUETOOTH[] = {"bt-pan"};
 
+    public static final String ITFS_USB[] = {"usb+", "rndis+"};
+
     public static final String BOOT_COMPLETED = "BOOT_COMPLETED";
     public static final String CONNECTIVITY_CHANGE = "CONNECTIVITY_CHANGE";
     public static final String TETHER_STATE_CHANGED = "TETHER_STATE_CHANGED";

@@ -87,6 +87,7 @@
     <string name="custom_script_error">Error saving custom script</string>
     <string name="custom_script_info"><b>Enter custom script below.</b>		\n<i>(Leave blank to remove.)</i>		\nFor information about custom scripts, click <a href="https://github.com/ukanth/afwall/wiki/CustomScripts">here</a>.</string>
     <string name="custom_script2_info">    	\n<b>Custom shutdown script</b>    	\nYou can also define a custom script to be executed when the firewall is <b>disabled</b>:</string>
+    <string name="custom_script3_info">    	\n<b>Custom fastapply script</b>    	\nYou can also define a custom script to be executed when the firewall is <b>re-applying</b> rules (e.g when connectivity state changes):</string>
     <string name="unsaved_changes">Unsaved changes</string>
     <string name="unsaved_changes_message">You have unsaved changes.\nDo you want to apply or discard them?</string>
     <string name="help_dialog_text"></string>
@@ -203,6 +204,8 @@
     <string name="iptables_pref">Iptables binary</string>
     <string name="vpn_profile">VPN control</string>
     <string name="vpnSummary">Enable to control VPN permissions separately</string>
+    <string name="usb_profile">USB control</string>
+    <string name="usbSummary">Enable to control USB permissions</string>
     <string name="roaming">Roaming control</string>
     <string name="roamingSummary">Enable to control roaming permissions separately</string>
     <string name="bluetooth_profile">Bluetooth control</string>
@@ -353,6 +356,7 @@
     <string name="lan">LAN</string>
     <string name="vpn">VPN</string>
     <string name="bluetooth">Bluetooth</string>
+    <string name="usb">USB</string>
     <string name="tor">Tor</string>
     <string name="data">Data</string>
     <string name="legend_data">Let AFWAll+ control mobile data (2G,3G,EDGE,LTE/4G) permissions</string>

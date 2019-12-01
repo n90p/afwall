@@ -52,6 +52,7 @@ import dev.ukanth.ufirewall.util.G;
 public class CustomScriptActivity extends AppCompatActivity implements OnClickListener {
     private EditText script;
     private EditText script2;
+    private EditText script3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +70,8 @@ public class CustomScriptActivity extends AppCompatActivity implements OnClickLi
         this.script.setText(prefs.getString(Api.PREF_CUSTOMSCRIPT, ""));
         this.script2 = (EditText) view.findViewById(R.id.customscript2);
         this.script2.setText(prefs.getString(Api.PREF_CUSTOMSCRIPT2, ""));
+        this.script3 = (EditText) view.findViewById(R.id.customscript3);
+        this.script3.setText(prefs.getString(Api.PREF_CUSTOMSCRIPT3, ""));
 
         setTitle(R.string.set_custom_script);
         setContentView(view);
@@ -112,6 +115,7 @@ public class CustomScriptActivity extends AppCompatActivity implements OnClickLi
         final Intent response = new Intent(Api.CUSTOM_SCRIPT_MSG);
         response.putExtra(Api.SCRIPT_EXTRA, script.getText().toString());
         response.putExtra(Api.SCRIPT2_EXTRA, script2.getText().toString());
+        response.putExtra(Api.SCRIPT3_EXTRA, script3.getText().toString());
         setResult(RESULT_OK, response);
         finish();
     }
@@ -132,7 +136,8 @@ public class CustomScriptActivity extends AppCompatActivity implements OnClickLi
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             final SharedPreferences prefs = getSharedPreferences(Api.PREFS_NAME, 0);
             if (script.getText().toString().equals(prefs.getString(Api.PREF_CUSTOMSCRIPT, ""))
-                    && script2.getText().toString().equals(prefs.getString(Api.PREF_CUSTOMSCRIPT2, ""))) {
+                    && script2.getText().toString().equals(prefs.getString(Api.PREF_CUSTOMSCRIPT2, ""))
+                    && script3.getText().toString().equals(prefs.getString(Api.PREF_CUSTOMSCRIPT3, ""))) {
                 // Nothing has been changed, just return
                 return super.onKeyDown(keyCode, event);
             }
