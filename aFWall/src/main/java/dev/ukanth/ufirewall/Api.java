@@ -160,7 +160,7 @@ public final class Api {
      */
     public static final int SPECIAL_UID_TETHER = -12;
     /** special application UID used for netd DNS proxy */
-    //public static final int SPECIAL_UID_DNSPROXY	= -13;
+    public static final int SPECIAL_UID_DNSPROXY = -13;
     /**
      * special application UID used for NTP
      */
@@ -450,6 +450,10 @@ public final class Api {
                 }
             }
 
+            // DNS queries are coming from netd
+            if (uids.indexOf(SPECIAL_UID_DNSPROXY) >= 0) {
+                addRuleForUsers(cmds, new String[]{"root", "dns"}, "-A " + chain + " -p udp --dport 53", action);
+            }
 
             // NTP service runs as "system" user
             if (uids.indexOf(SPECIAL_UID_NTP) >= 0) {
@@ -819,19 +823,6 @@ public final class Api {
             cmds.add("-A " + AFWALL_CHAIN_NAME + "-wifi-tether -j " + AFWALL_CHAIN_NAME + "-wifi-fork");
             cmds.add("-A " + AFWALL_CHAIN_NAME + "-3g-tether -j " + AFWALL_CHAIN_NAME + "-3g-fork");
 
-            // NOTE: we still need to open a hole to let WAN-only UIDs talk to a DNS server
-            // on the LAN
-            if (whitelist) {
-                cmds.add("-A " + AFWALL_CHAIN_NAME + "-wifi-lan -p udp --dport 53 -j RETURN");
-                //bug fix allow dns to be open on Pie for all connection type
-                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
-                    cmds.add("-A " + AFWALL_CHAIN_NAME + "-wifi-wan" + " -p udp --dport 53" + " -j RETURN");
-                    cmds.add("-A " + AFWALL_CHAIN_NAME + "-3g-home" + " -p udp --dport 53" + " -j RETURN");
-                    cmds.add("-A " + AFWALL_CHAIN_NAME + "-3g-roam" + " -p udp --dport 53" + " -j RETURN");
-                    cmds.add("-A " + AFWALL_CHAIN_NAME + "-vpn" + " -p udp --dport 53" + " -j RETURN");
-                    cmds.add("-A " + AFWALL_CHAIN_NAME + "-bluetooth" + " -p udp --dport 53" + " -j RETURN");
-                }
-            }
 
             // now add the per-uid rules for 3G home, 3G roam, wifi WAN, wifi LAN, VPN
             // in whitelist mode the last rule in the list routes everything else to afwall-reject
@@ -1677,6 +1668,7 @@ public final class Api {
         specialData.add(new PackageInfoData(SPECIAL_UID_ANY, ctx.getString(R.string.all_item), "dev.afwall.special.any"));
         specialData.add(new PackageInfoData(SPECIAL_UID_KERNEL, ctx.getString(R.string.kernel_item), "dev.afwall.special.kernel"));
         specialData.add(new PackageInfoData(SPECIAL_UID_TETHER, ctx.getString(R.string.tethering_item), "dev.afwall.special.tether"));
+        specialData.add(new PackageInfoData(SPECIAL_UID_DNSPROXY, ctx.getString(R.string.dnsproxy_item), "dev.afwall.special.dnsproxy"));
         specialData.add(new PackageInfoData(SPECIAL_UID_NTP, ctx.getString(R.string.ntp_item), "dev.afwall.special.ntp"));
 
 
