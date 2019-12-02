@@ -885,9 +885,11 @@ public final class Api {
                     String enabled_bluetooth = android.text.TextUtils.join(delimeter, ruleDataSet.bluetoothList);
                     String enabled_lan = android.text.TextUtils.join(delimeter, ruleDataSet.lanList);
                     String enabled_tor = android.text.TextUtils.join(delimeter, ruleDataSet.torList);
+                    String active_network = getActiveNetwork(ctx);
                     out.add("export IPTABLES=\"" + ipPath + "\"; "
                             + "export BUSYBOX=\"" + bbPath + "\"; "
                             + "export IPV6=" + (ipv6 ? "1" : "0") + "; "
+                            + "export ACTIVE_NETWORK=\"" + (active_network == null ? "" : active_network) + "\"; "
                             + "export ENABLED_WIFI=\"" + enabled_wifi + "\"; "
                             + "export ENABLED_DATA=\"" + enabled_data + "\"; "
                             + "export ENABLED_ROAM=\"" + enabled_roam + "\"; "
@@ -3398,6 +3400,18 @@ public final class Api {
                 return 3;
         }
         return 0;
+    }
+
+    public static String getActiveNetwork(Context context) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        assert cm != null;
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+        if (activeNetwork != null) {
+            return activeNetwork.getTypeName();
+        }
+        return null;
     }
 
     /**
