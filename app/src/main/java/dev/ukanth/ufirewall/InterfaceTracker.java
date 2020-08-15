@@ -116,7 +116,7 @@ public final class InterfaceTracker {
     public static void setupBluetoothProfile(Context context) {
         PackageManager pm = context.getPackageManager();
         boolean hasBluetooth = pm.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH);
-        if (hasBluetooth) {
+        if (hasBluetooth && btPanProfile == null) {
             BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             if (bluetoothAdapter != null) {
                 bluetoothAdapter.getProfileProxy(context, btListener, 5);
