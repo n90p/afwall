@@ -153,6 +153,12 @@ public final class InterfaceTracker {
 
         InterfaceDetails ret = new InterfaceDetails();
 
+        try {
+            getTetherStatus(context, ret);
+        } catch (Exception e) {
+            Log.i(Api.TAG, "Exception in  getInterfaceDetails.checkTether" + e.getLocalizedMessage());
+        }
+
         ConnectivityManager cm = (ConnectivityManager) context
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -179,11 +185,6 @@ public final class InterfaceTracker {
                 ret.netType = ConnectivityManager.TYPE_WIFI;
                 ret.netEnabled = true;
                 break;
-        }
-        try {
-            getTetherStatus(context, ret);
-        } catch (Exception e) {
-            Log.i(Api.TAG, "Exception in  getInterfaceDetails.checkTether" + e.getLocalizedMessage());
         }
         NewInterfaceScanner.populateLanMasks(ret);
         return ret;
